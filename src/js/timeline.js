@@ -41,11 +41,11 @@ export class Timeline extends NamedObject {
     }
 
     getItemWidth() {
-        return Timeline.itemWidth[this._scale];
+        return Timeline.itemWidth[this._scale] * ChartManager.instance.getPixelRatio();
     }
 
     getSpaceWidth() {
-        return Timeline.spaceWidth[this._scale];
+        return Timeline.spaceWidth[this._scale] * ChartManager.instance.getPixelRatio();
     }
 
     getColumnWidth() {
@@ -157,8 +157,8 @@ export class Timeline extends NamedObject {
         let mgr = ChartManager.instance;
         let area = mgr.getArea(this.getDataSourceName() + ".main");
         if (area !== null) {
-            this._innerLeft = area.getLeft() + Timeline.PADDING_LEFT;
-            let w = Math.max(0, area.getWidth() - (Timeline.PADDING_LEFT + Timeline.PADDING_RIGHT));
+            this._innerLeft = area.getLeft() + Timeline.PADDING_LEFT * ChartManager.instance.getPixelRatio();
+            let w = Math.max(0, area.getWidth() - (Timeline.PADDING_LEFT + Timeline.PADDING_RIGHT) * ChartManager.instance.getPixelRatio());
             if (this._innerWidth !== w) {
                 this._innerWidth = w;
                 this.updateMaxItemCount();

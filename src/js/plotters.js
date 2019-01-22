@@ -1232,8 +1232,8 @@ export class RangePlotter extends NamedObject {
         let gridRects = [];
         for (let n in gradations) {
             let y = range.toY(gradations[n]);
-            gridRects.push({x: left, y: y, w: 6, h: 1});
-            gridRects.push({x: right - 6, y: y, w: 6, h: 1});
+            gridRects.push({x: left, y: y, w: 6 * ChartManager.instance.getPixelRatio(), h: 1 * ChartManager.instance.getPixelRatio()});
+            gridRects.push({x: right - 6 * ChartManager.instance.getPixelRatio(), y: y, w: 6 * ChartManager.instance.getPixelRatio(), h: 1 * ChartManager.instance.getPixelRatio()});
             context.fillText(Util.fromFloat(gradations[n], 2), center, y);
         }
         if (gridRects.length > 0) {
@@ -1699,9 +1699,9 @@ export class TimelineSelectionPlotter extends Plotter {
         let lang = mgr.getLanguage();
         let x = timeline.toItemCenter(timeline.getSelectedIndex());
         context.fillStyle = theme.getColor(themes.Theme.Color.Background);
-        context.fillRect(x - 52.5, area.getTop() + 2.5, 106, 18);
+        context.fillRect(x - 52.5 * ChartManager.instance.getPixelRatio(), area.getTop() + 2.5 * ChartManager.instance.getPixelRatio(), 106 * ChartManager.instance.getPixelRatio(), 18 * ChartManager.instance.getPixelRatio());
         context.strokeStyle = theme.getColor(themes.Theme.Color.Grid3);
-        context.strokeRect(x - 52.5, area.getTop() + 2.5, 106, 18);
+        context.strokeRect(x - 52.5 * ChartManager.instance.getPixelRatio(), area.getTop() + 2.5 * ChartManager.instance.getPixelRatio(), 106 * ChartManager.instance.getPixelRatio(), 18 * ChartManager.instance.getPixelRatio());
         context.font = theme.getFont(themes.Theme.Font.Default);
         context.textAlign = "center";
         context.textBaseline = "middle";
@@ -1769,10 +1769,10 @@ export class RangeSelectionPlotter extends NamedObject {
         let y = range.getSelectedPosition();
         Plotter.createPolygon(context, [
             {"x": area.getLeft(), "y": y},
-            {"x": area.getLeft() + 5, "y": y + 10},
-            {"x": area.getRight() - 3, "y": y + 10},
-            {"x": area.getRight() - 3, "y": y - 10},
-            {"x": area.getLeft() + 5, "y": y - 10}
+            {"x": area.getLeft() + 5 * ChartManager.instance.getPixelRatio(), "y": y + 10 * ChartManager.instance.getPixelRatio()},
+            {"x": area.getRight() - 3 * ChartManager.instance.getPixelRatio(), "y": y + 10 * ChartManager.instance.getPixelRatio()},
+            {"x": area.getRight() - 3 * ChartManager.instance.getPixelRatio(), "y": y - 10 * ChartManager.instance.getPixelRatio()},
+            {"x": area.getLeft() + 5 * ChartManager.instance.getPixelRatio(), "y": y - 10 * ChartManager.instance.getPixelRatio()}
         ]);
         let theme = mgr.getTheme(this.getFrameName());
         context.fillStyle = theme.getColor(themes.Theme.Color.Background);

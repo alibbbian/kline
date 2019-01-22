@@ -4,8 +4,8 @@
     <meta name="renderer" content="webkit"/>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script src="/lib/jquery.js"></script>
-    <script src="/lib/jquery.mousewheel.js"></script>
+    <script src="../lib/jquery.js"></script>
+    <script src="../lib/jquery.mousewheel.js"></script>
     <style type="text/css">
         .kline {
             width: 1200px;
@@ -49,34 +49,47 @@
     </select>
     <button id="set-lang-btn">设置</button>
     <hr>
+    <button id="create-btn">create</button><button id="destroy-btn">destroy</button>
 
 </div>
 
-<script src="/dist/kline.js"></script>
+<script src="../dist/kline.js"></script>
 
 <script type="text/javascript">
 
-    var kline = new Kline({
-        element: "#kline_container",
-        width: 1200,
-        height: 650,
-        theme: 'dark', // light/dark
-        language: 'zh-cn', // zh-cn/en-us/zh-tw
-        ranges: ["1w", "1d", "1h", "30m", "15m", "5m", "1m", "line"],
-        symbol: "BTC",
-        symbolName: "BTC/USD",
-        type: "poll", // poll/socket
-        url: "/examples/mock.json",
-        limit: 1000,
-        intervalTime: 5000,
-        debug: true,
-        showTrade: true,
-        onResize: function(width, height) {
-            console.log("chart resized: " + width + " " + height);
-        }
-    });
+    var kline = null;
 
-    kline.draw();
+    function createKline() {
+        if(kline != null){
+            kline.destroy();
+        }
+        kline = new Kline({
+            element: "#kline_container",
+            width: 1200,
+            height: 650,
+            theme: 'dark', // light/dark
+            language: 'zh-cn', // zh-cn/en-us/zh-tw
+            ranges: ["1w", "1d", "1h", "30m", "15m", "5m", "1m", "line"],
+            symbol: "BTC",
+            symbolName: "BTC/USD",
+            type: "poll", // poll/socket
+            url: "../examples/mock.json",
+            limit: 1000,
+            intervalTime: 5000,
+            debug: true,
+            showTrade: true,
+            onResize: function(width, height) {
+                console.log("chart resized: " + width + " " + height);
+            },
+            filterData(res){
+                return res;
+            }
+        });
+
+        kline.draw();
+    }
+
+    createKline();
 
 
     $('#resize-btn').click(function () {
@@ -106,6 +119,14 @@
     $('#set-lang-btn').click(function () {
         var lang = $('#lang-select').val();
         kline.setLanguage(lang);
+    });
+
+    $('#destroy-btn').click(function () {
+        kline.destroy();
+    });
+
+    $('#create-btn').click(function () {
+        createKline();
     });
 
 </script>

@@ -1,4 +1,5 @@
 import Kline from './kline'
+import {ChartManager} from './chart_manager'
 
 export class Theme {
 
@@ -39,7 +40,8 @@ export class Theme {
     };
 
     static Font = {
-        Default: Theme.theme_font_id++
+        Default: Theme.theme_font_id++,
+        Size: 12
     };
 
     _colors;
@@ -100,7 +102,7 @@ export class DarkTheme extends Theme {
         this._colors[Theme.Color.CircleColorFill] = "#000000";
         this._colors[Theme.Color.CircleColorStroke] = "#ffffff";
         this._fonts = [];
-        this._fonts[Theme.Font.Default] = "12px Tahoma";
+        this._fonts[Theme.Font.Default] = Theme.Font.Size * ChartManager.instance.getPixelRatio() + "px Tahoma";
     }
 
 }
@@ -148,7 +150,7 @@ export class LightTheme extends Theme {
         this._colors[Theme.Color.CircleColorFill] = "#ffffff";
         this._colors[Theme.Color.CircleColorStroke] = "#393c40";
         this._fonts = [];
-        this._fonts[Theme.Font.Default] = "12px Tahoma";
+        this._fonts[Theme.Font.Default] = Theme.Font.Size * ChartManager.instance.getPixelRatio() + "px Tahoma";
     }
 
 }

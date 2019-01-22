@@ -6,7 +6,6 @@ import {DefaultTemplate, Template} from './templates'
 import {MEvent} from './mevent'
 import $ from 'jquery'
 
-
 export class Control {
 
     static refreshCounter = 0;
@@ -98,11 +97,13 @@ export class Control {
             console.log("DEBUG: " + Kline.instance.requestParam);
         }
         $(document).ready(
-            Kline.instance.G_HTTP_REQUEST = $.ajax({
-                type: "GET",
+            
+            Kline.instance.G_HTTP_REQUEST = 
+            $.ajax({
+                type: Kline.instance.method,
                 url: Kline.instance.url,
                 dataType: 'json',
-                data: Kline.instance.requestParam,
+                data: Kline.instance.params,
                 timeout: 30000,
                 created: Date.now(),
                 beforeSend: function () {
@@ -111,6 +112,7 @@ export class Control {
                 },
                 success: function (res) {
                     if (Kline.instance.G_HTTP_REQUEST) {
+                        res = Kline.instance.filterData(res);
                         Control.requestSuccessHandler(res);
                     }
                 },
@@ -129,6 +131,29 @@ export class Control {
                     Kline.instance.G_HTTP_REQUEST = null;
                 }
             })
+            // axios.post({
+            //   method: 'post',
+            //   url:'api/market/kline_data',
+            //   data: {
+            //     code: 'BSBTCUSD',
+            //     interval: '1'
+            //   }
+            // }).then(res => {
+            //   if (Kline.instance.G_HTTP_REQUEST) {
+            //     res = Kline.instance.filterData(res);
+            //     // Control.requestSuccessHandler(res);
+            //   }
+            // }).catch(xhr => {
+            //   if (Kline.instance.debug) {
+            //     console.log(xhr);
+            //   }
+            //   if (xhr.status === 200 && xhr.readyState === 4) {
+            //     return;
+            //   }
+            //   Kline.instance.timer = setTimeout(function () {
+            //     Control.requestData(true);
+            //   }, Kline.instance.intervalTime);
+            // })
         );
     }
 
@@ -187,15 +212,20 @@ export class Control {
 
     static TwoSecondThread() {
         let f = Kline.instance.chartMgr.getDataSource("frame0.k0").getLastDate();
-
+        
         if (f === -1) {
             Kline.instance.requestParam = Control.setHttpRequestParam(Kline.instance.symbol, Kline.instance.range, Kline.instance.limit, null);
         } else {
             Kline.instance.requestParam = Control.setHttpRequestParam(Kline.instance.symbol, Kline.instance.range, null, f.toString());
         }
-
+        console.log(Kline.instance.requestParam, f.toString(), 'TwoSecondThread');
+        
         Control.requestData();
     }
+
+    // static setCookieSymbol(){
+        
+    // }
 
     static readCookie() {
         ChartSettings.get();
@@ -203,12 +233,14 @@ export class Control {
         let tmp = ChartSettings.get();
         ChartManager.instance.setChartStyle('frame0.k0', tmp.charts.chartStyle);
         let symbol = tmp.charts.symbol;
+        console.log('readcookie', Kline.instance.init, Kline.instance);
+        // let symbol = Kline.instance.setCookieSymbol()
         if (!Kline.instance.init) {
-            symbol = Kline.instance.symbol;
+            // symbol = Kline.instance.symbol;
             Kline.instance.init = true;
         }
         Kline.instance.symbol = symbol;
-        Control.switchSymbolSelected(symbol);
+        Control.switchSymbolSelected('');
         let period = tmp.charts.period;
         Control.switchPeriod(period);
         $('#chart_period_' + period + '_v a').addClass('selected');
@@ -336,15 +368,20 @@ export class Control {
         canvasGroup.css({
             left: canvasGroupRect.x + 'px',
             top: canvasGroupRect.y + 'px',
-            // width: canvasGroupRect.w + 'px',
+            width: canvasGroupRect.w + 'px',
+            height: canvasGroupRect.h + 'px'
+        });
+        $('#chart_mainCanvas,#chart_overlayCanvas').css({
+            width: canvasGroupRect.w + 'px',
             height: canvasGroupRect.h + 'px'
         });
         let mainCanvas = $('#chart_mainCanvas')[0];
         let overlayCanvas = $('#chart_overlayCanvas')[0];
-        mainCanvas.width = canvasGroupRect.w;
-        mainCanvas.height = canvasGroupRect.h;
-        overlayCanvas.width = canvasGroupRect.w;
-        overlayCanvas.height = canvasGroupRect.h;
+
+        mainCanvas.width = canvasGroupRect.w * ChartManager.instance.getPixelRatio();
+        mainCanvas.height = canvasGroupRect.h * ChartManager.instance.getPixelRatio();
+        overlayCanvas.width = canvasGroupRect.w * ChartManager.instance.getPixelRatio();
+        overlayCanvas.height = canvasGroupRect.h * ChartManager.instance.getPixelRatio();
         if (tabBarShown) {
             tabBar.css({
                 left: tabBarRect.x + 'px',

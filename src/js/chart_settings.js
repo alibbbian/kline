@@ -1,3 +1,4 @@
+import Kline from './kline'
 import {ChartManager} from './chart_manager'
 
 export class ChartSettings {
@@ -70,6 +71,9 @@ export class ChartSettings {
     }
 
     static load() {
+        if (!Kline.instance.readCookie) {
+            return
+        }
         if (document.cookie.length <= 0)
             return;
         let start = document.cookie.indexOf("chartSettings=");
@@ -84,6 +88,9 @@ export class ChartSettings {
     }
 
     static save() {
+       if (!Kline.instance.readCookie) {
+           return 
+       }
         let exdate = new Date();
         exdate.setDate(exdate.getDate() + 2);
         document.cookie = "chartSettings=" + escape(JSON.stringify(ChartSettings._data)) +

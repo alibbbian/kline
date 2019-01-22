@@ -85,6 +85,7 @@ export class Chart {
 
     setSymbol(symbol) {
         this._symbol = symbol;
+        console.log('setSymbol', symbol);
         this.updateDataAndDisplay();
     }
 
@@ -105,16 +106,21 @@ export class Chart {
             Control.requestData();
         }
         ChartManager.instance.redraw('All', false);
+        console.log('updateDataAndDisplay');
+        Kline.instance.change(Kline.instance.range)
+        
     }
 
 
     setCurrentContractUnit(contractUnit) {
         this._contract_unit = contractUnit;
+        console.log('setCurrentContractUnit', contractUnit);
         this.updateDataAndDisplay();
     }
 
     setCurrentMoneyType(moneyType) {
         this._money_type = moneyType;
+        console.log('setCurrentMoneyType', moneyType);
         this.updateDataAndDisplay();
     }
 
@@ -124,6 +130,8 @@ export class Chart {
             Kline.instance.subscribed.unsubscribe();
             Kline.instance.subscribed = Kline.instance.stompClient.subscribe(Kline.instance.subscribePath + '/' + Kline.instance.symbol + '/' + this._range, Control.subscribeCallback);
         }
+        console.log('setCurrentPeriod', period);
+        Kline.instance.updateCurrentPeriod(this._range, Kline.instance.params)
         this.updateDataAndDisplay();
         Kline.instance.onRangeChange(this._range);
     }

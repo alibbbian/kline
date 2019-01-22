@@ -5,7 +5,7 @@ import {ChartSettings} from './chart_settings'
 import {Template} from './templates'
 import '../css/main.css'
 import tpl from '../view/tpl.html'
-import fire from './firebase'
+// import fire from './firebase'
 import $ from 'jquery'
 
 
@@ -13,6 +13,7 @@ export default class Kline {
 
     static created = false;
     static instance = null;
+    static refreshFunction_inteval = null;
 
     constructor(option) {
         this.element = "#kline_container";
@@ -22,6 +23,7 @@ export default class Kline {
         this.buttonDown = false;
         this.init = false;
         this.requestParam = "";
+        this.params={}
         this.data = {};
         this.width = 1200;
         this.height = 650;
@@ -47,7 +49,16 @@ export default class Kline {
         this.isSized = false;
         this.paused = false;
         this.subscribed = null;
-        this.disableFirebase = false;
+        this.disableFirebase = true;
+        this.method='GET';
+        this.hideSizeIcon=false;
+        this.readCookie=false
+        this.filterData = function (res) {
+            return res;
+        };
+        this.setCookieSymbol=function() {
+
+        }
 
         this.periodMap = {
             "01w": 7 * 86400 * 1000,
@@ -98,9 +109,10 @@ export default class Kline {
      *********************************************/
 
     draw() {
+        // this.destroy()
         Kline.trade = new KlineTrade();
         Kline.chartMgr = new ChartManager();
-
+        
         let view = $.parseHTML(tpl);
         for (let k in this.ranges) {
             let res = $(view).find('[name="' + this.ranges[k] + '"]');
@@ -110,7 +122,7 @@ export default class Kline {
         }
         $(this.element).html(view);
 
-        setInterval(Control.refreshFunction, this.intervalTime);
+        Kline.refreshFunction_inteval = setInterval(Control.refreshFunction, this.intervalTime);
         if (this.type === "stomp") {
             Control.socketConnect();
         }
@@ -124,26 +136,52 @@ export default class Kline {
         ChartManager.instance.bindCanvas("overlay", document.getElementById("chart_overlayCanvas"));
         Control.refreshTemplate();
         Control.onSize(this.width, this.height);
+        console.log('readcookiebefor',this.symbol,this.symbolName);
         Control.readCookie();
-
+        console.log('readcookieafter', this.symbol, this.symbolName);
         this.setTheme(this.theme);
         this.setLanguage(this.language);
 
         $(this.element).css({visibility: "visible"});
+        if (Kline.instance.hideSizeIcon) {
+            $('.chart_container.light #chart_updated_time').css('display', 'none')
+        }
     }
 
+    destroy() {
+        window.clearInterval(Kline.refreshFunction_inteval);
+        window.clearInterval(Control.refreshHandler);
+        window.clearTimeout(Kline.instance.timer);
+        Control.AbortRequest();
+        this.disconnect();
+        $(this.element).empty();
+        console.log('destroy');
+        this.symbol=''
+        this.symbolName=''
+    }
+
+    // updated (params) {
+    //     ChartManager.instance.cleardata();
+    //     console.log(Kline.instance.data,'update');
+    //     this.params=params
+    //     this.draw()
+    // }
+    
     resize(width, height) {
         this.width = width;
         this.height = height;
         Control.onSize(this.width, this.height);
     }
 
-    setSymbol(symbol, symbolName) {
+    setSymbol(symbol, symbolName,params) {
         this.symbol = symbol;
         this.symbolName = symbolName;
+        this.params=params
         Control.switchSymbol(symbol);
         this.onSymbolChange(symbol, symbolName);
     }
+
+    
 
     setTheme(style) {
         this.theme = style;
@@ -257,6 +295,14 @@ export default class Kline {
         if (this.debug) {
             console.log("DEBUG: range changed to " + range);
         }
+    }
+
+    change(range) {
+
+    }
+
+    updateCurrentPeriod(range){
+
     }
 
     registerMouseEvent() {
@@ -478,8 +524,8 @@ export default class Kline {
             $("#chart_overlayCanvas")
                 .mousemove(function (e) {
                     let r = e.target.getBoundingClientRect();
-                    let x = e.clientX - r.left;
-                    let y = e.clientY - r.top;
+                    let x = (e.clientX - r.left) * ChartManager.instance.getPixelRatio();
+                    let y = (e.clientY - r.top) * ChartManager.instance.getPixelRatio();
                     let mgr = ChartManager.instance;
                     if (Kline.instance.buttonDown === true) {
                         mgr.onMouseMove("frame0", x, y, true);
@@ -491,8 +537,8 @@ export default class Kline {
                 })
                 .mouseleave(function (e) {
                     let r = e.target.getBoundingClientRect();
-                    let x = e.clientX - r.left;
-                    let y = e.clientY - r.top;
+                    let x = (e.clientX - r.left) * ChartManager.instance.getPixelRatio();
+                    let y = (e.clientY - r.top) * ChartManager.instance.getPixelRatio();
                     let mgr = ChartManager.instance;
                     mgr.onMouseLeave("frame0", x, y, false);
                     mgr.redraw("OverlayCanvas");
@@ -503,8 +549,8 @@ export default class Kline {
                     }
                     Kline.instance.buttonDown = false;
                     let r = e.target.getBoundingClientRect();
-                    let x = e.clientX - r.left;
-                    let y = e.clientY - r.top;
+                    let x = (e.clientX - r.left) * ChartManager.instance.getPixelRatio();
+                    let y = (e.clientY - r.top) * ChartManager.instance.getPixelRatio();
                     let mgr = ChartManager.instance;
                     mgr.onMouseUp("frame0", x, y);
                     mgr.redraw("All");
@@ -517,8 +563,8 @@ export default class Kline {
                     }
                     Kline.instance.buttonDown = true;
                     let r = e.target.getBoundingClientRect();
-                    let x = e.clientX - r.left;
-                    let y = e.clientY - r.top;
+                    let x = (e.clientX - r.left) * ChartManager.instance.getPixelRatio();
+                    let y = (e.clientY - r.top) * ChartManager.instance.getPixelRatio();
                     ChartManager.instance.onMouseDown("frame0", x, y);
                 });
             $("#chart_parameter_settings :input").change(function () {
@@ -573,8 +619,6 @@ export default class Kline {
                 ChartSettings.save();
                 ChartManager.instance.redraw('All', false);
             });
-
-
             $('body').on('click', '#sizeIcon', function () {
                 Kline.instance.isSized = !Kline.instance.isSized;
                 if (Kline.instance.isSized) {

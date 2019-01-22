@@ -65,12 +65,34 @@ export class ChartManager {
         this._overlayCanvas = null;
         this._mainContext = null;
         this._overlayContext = null;
+        this._pixelRatio = 1;
 
         if (!ChartManager.created) {
             ChartManager.instance = this;
             ChartManager.created = true;
         }
         return ChartManager.instance;
+    }
+
+    // 获取像素比例，高清分辨率
+    getPixelRatio(){
+        return this._pixelRatio;
+    }
+
+    changeWithPixelRatio(context){
+        var getPixelRatio = function(context) {
+            var backingStore = context.backingStorePixelRatio ||
+                context.webkitBackingStorePixelRatio ||
+                context.mozBackingStorePixelRatio ||
+                context.msBackingStorePixelRatio ||
+                context.oBackingStorePixelRatio ||
+                context.backingStorePixelRatio || 1;
+
+            return (window.devicePixelRatio || 1) / backingStore;
+        };
+
+        this._pixelRatio = Math.ceil(Math.max(getPixelRatio(context), 1));
+
     }
 
     redraw(layer, refresh) {
@@ -90,14 +112,21 @@ export class ChartManager {
         }
     }
 
+    cleardata(){
+        this._mainContext.clearRect(0, 0, this._mainCanvas.width, this._mainCanvas.height);
+    }
 
     bindCanvas(layer, canvas) {
+
         if (layer === "main") {
             this._mainCanvas = canvas;
             this._mainContext = canvas.getContext("2d");
+            this.changeWithPixelRatio(this._mainContext);
+            console.log(this._mainContext, 'canvas');
         } else if (layer === "overlay") {
             this._overlayCanvas = canvas;
             this._overlayContext = canvas.getContext("2d");
+            this.changeWithPixelRatio(this._mainContext);
             if (this._captureMouseWheelDirectly) {
                 $(this._overlayCanvas).bind('mousewheel', Control.mouseWheel);
             }
@@ -230,6 +259,7 @@ export class ChartManager {
     }
 
     setRunningMode(mode) {
+        console.log(mode, 'setRunningMode');
         let pds = this.getDataSource("frame0.k0");
         let curr_o = pds.getCurrentToolObject();
         if (curr_o !== null && curr_o.state !== ctools.CToolObject.state.AfterDraw) {
@@ -639,6 +669,10 @@ export class ChartManager {
     scale(s) {
         if (this._highlightedFrame === null)
             return;
+        if (!this._highlightedFrame) {
+            return
+        }
+        console.log(this._highlightedFrame, 'getHighlightedArea');
         let hiArea = this._highlightedFrame.getHighlightedArea();
         if (this.getRange(hiArea.getName()) !== undefined) {
             let dsName = hiArea.getDataSourceName();
@@ -1037,9 +1071,9 @@ export class ChartManager {
         this.removePlotter(areaName + "Range.decoration");
         dp.setIndicator(indic);
         this.setRange(areaName, range);
-        range.setPaddingTop(20);
-        range.setPaddingBottom(4);
-        range.setMinInterval(20);
+        range.setPaddingTop(20 * ChartManager.instance.getPixelRatio());
+        range.setPaddingBottom(4 * ChartManager.instance.getPixelRatio());
+        range.setMinInterval(20 * ChartManager.instance.getPixelRatio());
         if (Util.isInstance(indic, indicators.VOLUMEIndicator)) {
             let plotter = new plotters.LastVolumePlotter(areaName + "Range.decoration");
             this.setPlotter(plotter.getName(), plotter);

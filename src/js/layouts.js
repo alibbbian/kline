@@ -59,7 +59,7 @@ export class TableLayout extends areas.ChartAreaGroup {
         let nw = 8;
         // chart depths sidebar (深度图侧边栏宽度)
         let minRW = 76;
-        let maxRW = Math.min(240, width >> 1);
+        let maxRW = Math.min(100, width >> 2);
         let rw = minRW;
         let mgr = ChartManager.instance;
         let timeline = mgr.getTimeline(this.getDataSourceName());
